@@ -1,0 +1,5 @@
+outs:
+- md5: 15ba731c5f15500b5797eacb106b67b1
+  size: 1800534
+  hash: md5
+  path: extract_2025_12_04.csv
