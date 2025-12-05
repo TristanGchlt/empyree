@@ -1,0 +1,4 @@
+vector_size: 100
+window: 5
+min_count: 3
+epochs: 10
