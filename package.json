@@ -1,0 +1,29 @@
+{
+  "name": "empyree",
+  "version": "1.0.0",
+  "description": "Altered Card2Vec to build a card semantic space. Deck Clustering based on the semantic space to differenciate decks deeper than the hero used.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TristanGchlt/empyree.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/TristanGchlt/empyree/issues"
+  },
+  "homepage": "https://github.com/TristanGchlt/empyree#readme",
+  "dependencies": {
+    "altered-deckfmt": "^0.7.0",
+    "csv-parse": "^6.1.0",
+    "csv-stringify": "^6.6.0"
+  }
+}
