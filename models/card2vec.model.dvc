@@ -1,0 +1,5 @@
+outs:
+- md5: 8f935635f99e384c7c2fec30874e850f
+  size: 1164324
+  hash: md5
+  path: card2vec.model

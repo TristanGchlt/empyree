@@ -1,4 +1,6 @@
 vector_size: 100
-window: 39
-min_count: 3
+window: 40
+min_count: 1
 epochs: 10
+sg: 1
+workers: 4
