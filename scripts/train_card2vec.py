@@ -2,11 +2,12 @@ from gensim.models import Word2Vec
 from gensim.models.word2vec import LineSentence
 from pathlib import Path
 import yaml
+import sys
 
-# Chemins
-project_root = Path(__file__).resolve().parents[1]
-corpus_file = project_root / "data" / "processed" / "card_corpus.txt"
-model_file = project_root / "models" / "card2vec.model"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT))
+
+corpus_file = PROJECT_ROOT / "data" / "processed" / "card_corpus.txt"
 
 # Préparer le corpus
 sentences = LineSentence(str(corpus_file))
@@ -27,7 +28,5 @@ model = Word2Vec(
 )
 
 # Sauvegarder
-model.save(str(model_file))
-model.wv.save_word2vec_format(str(project_root / "models" / "card2vec_vectors.txt"), binary=False)
-
-print(f"Modèle sauvegardé dans {model_file}")
+model.save(str(PROJECT_ROOT / "models" / "card2vec.model"))
+model.wv.save_word2vec_format(str(PROJECT_ROOT / "models" / "card2vec_vectors.txt"), binary=False)
