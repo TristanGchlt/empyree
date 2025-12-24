@@ -7,7 +7,7 @@ sys.path.append(str(PROJECT_ROOT))
 
 from src.preprocessing.deck_preprocessing import preprocess_deck
 
-INPUT_CSV = PROJECT_ROOT / "data" / "decoded" / "decoded_2025_12_04.csv"
+INPUT_CSV = PROJECT_ROOT / "data" / "raw" / "raw_data.csv"
 OUTPUT_TXT = PROJECT_ROOT / "data" / "processed" / "card_corpus.txt"
 
 
