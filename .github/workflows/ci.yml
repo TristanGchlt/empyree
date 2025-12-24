@@ -1,0 +1,39 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Récupérer le code
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Installer Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      # 3️⃣ Installer Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry config virtualenvs.create true
+
+      # 4️⃣ Installer les dépendances
+      - name: Install dependencies
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry install
+
+      # 5️⃣ Lancer les tests
+      - name: Run tests
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry run pytest
