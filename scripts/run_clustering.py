@@ -5,7 +5,7 @@ import sys
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-from src.clustering.deck_embeddings import compute_all_deck_embeddings
+from src.clustering.deck_embeddings import compute_all_deck_embeddings, load_card_embeddings
 from src.clustering.faction_clustering import assign_factions
 from src.clustering.deck_clustering import cluster_decks
 
@@ -15,7 +15,8 @@ EMBEDDINGS_FILE = PROJECT_ROOT / "models"/ "card2vec_vectors.txt"
 OUTPUT_FILE = PROJECT_ROOT / "data" / "final" / "deck_dataset.csv"
 
 # --- 1️⃣ Charger les decklists et embeddings ---
-deck_lists = compute_all_deck_embeddings(CORPUS_FILE, EMBEDDINGS_FILE)  
+card_embeddings = load_card_embeddings(EMBEDDINGS_FILE)
+deck_lists = compute_all_deck_embeddings(CORPUS_FILE, card_embeddings)  
 # deck_lists : DataFrame avec colonnes 'deck_id', 'cards', et embedding vectorisé
 
 # --- 2️⃣ Attribution des factions (6 zones) ---
