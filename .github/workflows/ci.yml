@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          poetry install
+          poetry install --no-root
 
       # 5️⃣ Lancer les tests
       - name: Run tests
