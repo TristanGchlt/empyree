@@ -4,32 +4,23 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 
-def _find_best_k(X: np.ndarray, k_min: int = 2, k_max: int = 10) -> int:
+def _find_best_k(X: np.ndarray, k_min: int = 1, k_max: int = 10) -> int:
     """
     Détermine le meilleur k via le score de silhouette.
-
-    Args:
-        X : array (n_samples, n_features)
-        k_min : nombre minimum de clusters testés
-        k_max : nombre maximum de clusters testés
-
-    Returns:
-        k optimal
     """
     n_samples = X.shape[0]
 
-    # Pas assez de données pour clusteriser
-    if n_samples < k_min + 1:
+    # Cas trivial : pas assez de données
+    if n_samples <= 1:
         return 1
 
     k_max = min(k_max, n_samples - 1)
-
-    best_k = k_min
+    best_k = 1
     best_score = -1.0
 
-    for k in range(k_min, k_max + 1):
+    for k in range(max(k_min, 2), k_max + 1):
         try:
-            labels = KMeans(n_clusters=k, random_state=1).fit_predict(X)
+            labels = KMeans(n_clusters=k, random_state=1, n_init="auto").fit_predict(X)
             score = silhouette_score(X, labels)
 
             if score > best_score:
@@ -38,21 +29,20 @@ def _find_best_k(X: np.ndarray, k_min: int = 2, k_max: int = 10) -> int:
         except Exception:
             continue
 
-    # Garde-fou : si le clustering est très mauvais, on reste simple
+    # Garde-fou : si le clustering n'apporte rien
     if best_score < 0.05:
         return 1
 
     return best_k
 
 
-def cluster_decks(deck_df: pd.DataFrame, faction_labels: pd.Series) -> pd.Series:
+def cluster_decks(deck_df: pd.DataFrame) -> pd.Series:
     """
-    Effectue le clustering des decks **au sein de chaque faction**,
-    avec détermination automatique du nombre de clusters par faction.
+    Effectue le clustering des decks **au sein de chaque faction réelle**.
 
-    Args:
-        deck_df : DataFrame contenant les embeddings (colonnes vector_*)
-        faction_labels : pd.Series des labels de faction, indexée par deck_id
+    Prérequis :
+        - deck_df contient une colonne 'faction'
+        - deck_df contient les colonnes vector_*
 
     Returns:
         pd.Series des labels de clusters intra-faction, indexée par deck_id
@@ -60,8 +50,8 @@ def cluster_decks(deck_df: pd.DataFrame, faction_labels: pd.Series) -> pd.Series
     embedding_cols = [c for c in deck_df.columns if c.startswith("vector_")]
     cluster_labels = pd.Series(index=deck_df.index, dtype=int)
 
-    for faction in faction_labels.unique():
-        mask = faction_labels == faction
+    for faction in deck_df["faction"].unique():
+        mask = deck_df["faction"] == faction
         X = deck_df.loc[mask, embedding_cols].to_numpy()
 
         # Cas très petits groupes
@@ -71,7 +61,11 @@ def cluster_decks(deck_df: pd.DataFrame, faction_labels: pd.Series) -> pd.Series
 
         k_opt = _find_best_k(X)
 
-        kmeans = KMeans(n_clusters=k_opt, random_state=1)
+        if k_opt == 1:
+            cluster_labels.loc[mask] = 0
+            continue
+
+        kmeans = KMeans(n_clusters=k_opt, random_state=1, n_init="auto")
         labels = kmeans.fit_predict(X)
 
         cluster_labels.loc[mask] = labels
