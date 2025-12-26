@@ -3,29 +3,12 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
-CARDS_FILE = PROJECT_ROOT / "data" / "raw" / "cards_info.csv"
-VECTORS_FILE = PROJECT_ROOT / "models" / "card2vec_vectors.txt"
-
+CARDS_TSNE_FILE = PROJECT_ROOT / "data" / "final" / "cards_tsne.csv"
+CARD_METADATA_FILE = PROJECT_ROOT / "data" / "raw" / "cards_info.csv"
 
 def load_cards() -> pd.DataFrame:
-    """
-    Charge les métadonnées cartes + embeddings card2vec.
-    """
-    meta = pd.read_csv(CARDS_FILE)
-
-    vectors = []
-    with open(VECTORS_FILE, "r", encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split()
-            vectors.append([parts[0]] + list(map(float, parts[1:])))
-
-    vec_df = pd.DataFrame(vectors)
-    vec_df.rename(columns={0: "reference"}, inplace=True)
-
-    df = meta.merge(vec_df, on="reference", how="inner")
-
-    # projection simple pour le proto
-    df["x"] = df[1]
-    df["y"] = df[2]
-
+    tsne_df = pd.read_csv(CARDS_TSNE_FILE, index_col=0)
+    meta_df = pd.read_csv(CARD_METADATA_FILE)
+    df = tsne_df.merge(meta_df, left_on="card_id", right_on="reference", how="left")
+    df = df.rename(columns={"name": "nom", "faction": "faction", "card_type": "type"})
     return df
