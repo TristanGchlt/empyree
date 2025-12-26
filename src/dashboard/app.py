@@ -20,6 +20,7 @@ app.layout = html.Div(
         html.Nav(
             [
                 dcc.Link("🃏 Espace des cartes", href="/cards-space", style={"marginRight": "20px"}),
+                dcc.Link("🃏 Espace des decks", href="/decks-space", style={"marginRight": "20px"}),
             ],
             style={"textAlign": "center", "marginBottom": "20px"},
         ),

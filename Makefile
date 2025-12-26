@@ -1,9 +1,6 @@
 install_dependencies:
 	poetry install --no-root
 
-decode:
-	node scripts/decode_decks.js
-
 preprocess:
 	poetry run python scripts/build_corpus.py
 

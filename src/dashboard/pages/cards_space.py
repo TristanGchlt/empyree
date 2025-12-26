@@ -2,26 +2,6 @@ from dash import dcc, html, register_page, callback
 from dash.dependencies import Input, Output
 import plotly.express as px
 
-from src.dashboard.data.card_data import load_cards
-
-register_page(__name__, path="/cards-space", name="Espace des cartes")
-
-cards_df = load_cards()
-
-layout = html.Div([
-    html.H2("Espace des cartes"),
-
-    html.Label("Choisir une faction :"),
-    dcc.Dropdown(
-        id="cards-faction-dropdown",
-        options=[{"label": f, "value": f} for f in sorted(cards_df["faction"].unique())],
-        value=None,
-        multi=False,
-        placeholder="Toutes factions"
-    ),
-    dcc.Graph(id="cards-tsne-graph")
-])
-
 FACTION_COLORS = {
     "Axiom": "#8B5A2B",   # marron
     "Bravos": "#C0392B",  # rouge
@@ -32,34 +12,96 @@ FACTION_COLORS = {
 }
 
 CARD_TYPE_SYMBOLS = {
-    "Héros": "star",
+    "Héros": "circle-open",
     "Personnage": "circle",
-    "Jeton Personnage": "circle",
     "Sort": "cross",
     "Permanent d’Expédition": "square",
     "Repère Permanent": "diamond",
-    "Jeton Repère Permanent": "diamond"
+    "Permanent": "diamond"
 }
+
+from src.dashboard.data.card_data import load_cards
+
+register_page(__name__, path="/cards-space", name="Espace des cartes")
+
+
+layout = html.Div([
+    html.H2("Espace des cartes"),
+
+    html.Div([
+        html.Label("Projection :"),
+        dcc.RadioItems(
+            id="cards-tsne-dim",
+            options=[
+                {"label": "2D", "value": 2},
+                {"label": "3D", "value": 3},
+            ],
+            value=2,
+            inline=True
+        ),
+    ], style={"marginBottom": "10px"}),
+
+    html.Div([
+        html.Label("Choisir une faction :"),
+        dcc.Dropdown(
+            id="cards-faction-dropdown",
+            placeholder="Toutes factions"
+        ),
+    ], style={"width": "300px", "marginBottom": "15px"}),
+
+    dcc.Graph(id="cards-tsne-graph")
+])
+
+
+
+@callback(
+    Output("cards-faction-dropdown", "options"),
+    Input("cards-tsne-dim", "value")
+)
+def update_faction_options(dim):
+    df = load_cards(dim)
+    factions = sorted(df["faction"].dropna().unique())
+    return [{"label": f, "value": f} for f in factions]
+
 
 @callback(
     Output("cards-tsne-graph", "figure"),
-    Input("cards-faction-dropdown", "value")
+    Input("cards-tsne-dim", "value"),
+    Input("cards-faction-dropdown", "value"),
 )
-def update_graph(selected_faction):
-    df = cards_df if not selected_faction else cards_df[cards_df["faction"] == selected_faction]
-    fig = px.scatter(
-        df,
-        x="x",
-        y="y",
-        color="faction",
-        symbol="type",
-        symbol_map=CARD_TYPE_SYMBOLS,
-        color_discrete_map=FACTION_COLORS,
-        hover_name="nom",
-        title="Représentation t-SNE des cartes"
-    )
-    fig.update_traces(
-        marker=dict(size=7, opacity=0.85)
-    )
+def update_graph(dim, selected_faction):
+    df = load_cards(dim)
+
+    if selected_faction:
+        df = df[df["faction"] == selected_faction]
+
+    if dim == 2:
+        fig = px.scatter(
+            df,
+            x="x",
+            y="y",
+            color="faction",
+            symbol="type",
+            color_discrete_map=FACTION_COLORS,
+            symbol_map=CARD_TYPE_SYMBOLS,
+            hover_name="nom",
+            title="t-SNE 2D des cartes"
+        )
+    else:
+        fig = px.scatter_3d(
+            df,
+            x="x",
+            y="y",
+            z="z",
+            color="faction",
+            symbol="type",
+            color_discrete_map=FACTION_COLORS,
+            symbol_map=CARD_TYPE_SYMBOLS,
+            hover_name="nom",
+            title="t-SNE 3D des cartes"
+        )
+
+    fig.update_traces(marker=dict(size=6, opacity=0.85))
     fig.update_layout(height=700)
+
     return fig
