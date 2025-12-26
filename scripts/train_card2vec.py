@@ -4,19 +4,36 @@ from pathlib import Path
 import yaml
 import sys
 
+# Configuration du Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-corpus_file = PROJECT_ROOT / "data" / "processed" / "card_corpus.txt"
+# Import des fonctions utiles
+from src.clustering.deck_embeddings import compute_all_deck_embeddings
 
-# Préparer le corpus
-sentences = LineSentence(str(corpus_file))
+# Path du modèle courant
+MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"
+
+with open(MODEL_YAML) as f:
+    model_yaml = yaml.safe_load(f)
+    model_name = model_yaml['current_model']
+
+# Path des input et output
+INPUT_CORPUS = PROJECT_ROOT / "data" / "processed" / "card_corpus.txt"
+INPUT_CONFIG = PROJECT_ROOT / "configs" / "card2vec.yaml"
+OUTPUT_FOLDER = PROJECT_ROOT / "runs" / model_name
+OUTPUT_MODEL = OUTPUT_FOLDER / "model" / "card2vec.model"
+OUTPUT_EMBEDDINGS = OUTPUT_FOLDER / "embeddings" / "cards_vectors.txt"
+OUTPUT_DECK_EMBEDDINGS = OUTPUT_FOLDER / "embeddings" / "decks_vectors.csv"
+
+# Chargement du corpus
+sentences = LineSentence(str(INPUT_CORPUS))
 
 # Récupératiou des paramètres
-with open("configs/card2vec.yaml") as f:
+with open(INPUT_CONFIG) as f:
     cfg = yaml.safe_load(f)
 
-# Entraîner le modèle
+# Entrainement
 model = Word2Vec(
     sentences=sentences,
     vector_size=cfg['vector_size'],
@@ -27,6 +44,15 @@ model = Word2Vec(
     epochs=cfg['epochs']
 )
 
-# Sauvegarder
-model.save(str(PROJECT_ROOT / "models" / "card2vec.model"))
-model.wv.save_word2vec_format(str(PROJECT_ROOT / "models" / "card2vec_vectors.txt"), binary=False)
+# Création des embeddings de cartes
+card_embeddings = {card: model.wv[card] for card in model.wv.index_to_key}
+
+# Création des embeddings de decks : Moyenne des embeddings des cartes du deck
+deck_embeddings = compute_all_deck_embeddings(INPUT_CORPUS, card_embeddings)
+
+# Sauvegarde du modèle et des embeddings
+for sub in ["model", "embeddings", "projections", "clustering"]:
+    (OUTPUT_FOLDER / sub).mkdir(parents=True, exist_ok=True)
+model.save(str(OUTPUT_MODEL))
+model.wv.save_word2vec_format(str(OUTPUT_EMBEDDINGS), binary=False)
+deck_embeddings.to_csv(OUTPUT_DECK_EMBEDDINGS, index=False)

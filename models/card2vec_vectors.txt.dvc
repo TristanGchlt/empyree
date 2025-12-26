@@ -1,5 +1,0 @@
-outs:
-- md5: 8eb9f9c637310e3f0911dc57f04f4138
-  size: 1588841
-  hash: md5
-  path: card2vec_vectors.txt

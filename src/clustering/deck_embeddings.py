@@ -10,9 +10,6 @@ def compute_deck_embedding(deck: List[str], card_embeddings: Dict[str, np.ndarra
     """
     vectors = [card_embeddings[card_id] for card_id in deck if card_id in card_embeddings]
 
-    if not vectors:
-        raise ValueError("Aucune carte du deck n'a d'embedding connu.")
-
     return np.mean(vectors, axis=0)
 
 
@@ -33,7 +30,7 @@ def load_card_embeddings(embeddings_file: Path, expected_dim: int = 100) -> Dict
         for line in f:
             parts = line.strip().split()
             if len(parts) < expected_dim + 1:
-                # ligne invalide (en-tête ou vecteur incomplet)
+                # Ligne d'entête
                 continue
             card_id = parts[0]
             try:

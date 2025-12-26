@@ -1,5 +1,0 @@
-outs:
-- md5: baa5e1190ae0567d13487108219caeeb
-  size: 63107
-  hash: md5
-  path: cards_tsne.csv
