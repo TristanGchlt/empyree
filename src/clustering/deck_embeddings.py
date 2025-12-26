@@ -16,17 +16,33 @@ def compute_deck_embedding(deck: List[str], card_embeddings: Dict[str, np.ndarra
     return np.mean(vectors, axis=0)
 
 
-def load_card_embeddings(embeddings_file: Path) -> Dict[str, np.ndarray]:
+def load_card_embeddings(embeddings_file: Path, expected_dim: int = 100) -> Dict[str, np.ndarray]:
     """
     Lit le fichier de vecteurs et retourne un dictionnaire {card_id: np.array}.
-    Chaque ligne du fichier doit être : card_id val1 val2 ... valN
+    Ignore les lignes invalides ou l'en-tête.
+
+    Args:
+        embeddings_file : chemin vers card2vec_vectors.txt
+        expected_dim : dimension attendue des embeddings
+
+    Returns:
+        dict {card_id: np.array}
     """
     embeddings = {}
     with open(embeddings_file, "r", encoding="utf-8") as f:
         for line in f:
             parts = line.strip().split()
-            card_id, vector = parts[0], np.array([float(x) for x in parts[1:]], dtype=np.float32)
-            embeddings[card_id] = vector
+            if len(parts) < expected_dim + 1:
+                # ligne invalide (en-tête ou vecteur incomplet)
+                continue
+            card_id = parts[0]
+            try:
+                vector = np.array([float(x) for x in parts[1:]], dtype=np.float32)
+                if vector.shape[0] == expected_dim:
+                    embeddings[card_id] = vector
+            except ValueError:
+                # ligne mal formatée
+                continue
     return embeddings
 
 
