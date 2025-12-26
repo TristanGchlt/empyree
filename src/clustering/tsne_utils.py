@@ -21,17 +21,17 @@ def compute_tsne(embeddings: pd.DataFrame, vector_prefix: str = "vector_", n_com
     X = embeddings[vector_cols].to_numpy()
 
     tsne = TSNE(n_components=n_components, random_state=random_state)
-    X_tsne = tsne.fit_transform(X)
+    coords = tsne.fit_transform(X)
 
-    df_tsne = pd.DataFrame(X_tsne, index=embeddings.index, columns=[f"dim_{i}" for i in range(n_components)])
-    return df_tsne
+    df = pd.DataFrame({
+        "deck_id": embeddings.index,
+        "x": coords[:, 0],
+        "y": coords[:, 1]
+    })
+    if n_components==3:
+        df["z"] = coords[:, 2]
 
-def save_tsne(df_tsne: pd.DataFrame, output_file: Path):
-    """
-    Sauvegarde le DataFrame t-SNE en CSV.
-    """
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    df_tsne.to_csv(output_file, index=True)
+    return df
 
 def compute_tsne_card_embeddings(card_embeddings: Dict[str, np.ndarray],
                                  n_components: int = 2,
@@ -57,4 +57,15 @@ def compute_tsne_card_embeddings(card_embeddings: Dict[str, np.ndarray],
         "x": coords[:, 0],
         "y": coords[:, 1]
     })
+    if n_components==3:
+        df["z"] = coords[:, 2]
     return df
+
+
+
+def save_tsne(df_tsne: pd.DataFrame, output_file: Path):
+    """
+    Sauvegarde le DataFrame t-SNE en CSV.
+    """
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    df_tsne.to_csv(output_file, index=False)

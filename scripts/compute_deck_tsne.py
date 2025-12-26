@@ -19,13 +19,14 @@ with open(MODEL_YAML) as f:
 
 # Path des input et output
 INPUT = PROJECT_ROOT / "runs" / model_name / "embeddings" / "decks_vectors.csv"
-OUTPUT = PROJECT_ROOT / "runs" / model_name / "projections" / "decks_tsne.csv"
+OUTPUT_DIR = PROJECT_ROOT / "runs" / model_name / "projections"
 
 # Chargement des embeddings à transformer
 deck_embeddings = pd.read_csv(INPUT, index_col=0)
 
-# Transormation des embeddings en dimension réduite
-deck_tsne = compute_tsne(deck_embeddings)
-
-# Sauvegarde des coordonnées en dimension réduite
-save_tsne(deck_tsne, OUTPUT)
+for c in [2,3] :
+    # Transormation des embeddings en dimension réduite
+    tsne = compute_tsne(deck_embeddings, n_components=c)
+    # Sauvegarde des coordonnées en dimension réduite
+    output = OUTPUT_DIR / f"decks_tsne_{c}d.csv"
+    save_tsne(tsne, output)

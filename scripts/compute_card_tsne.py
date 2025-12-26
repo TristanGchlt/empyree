@@ -19,13 +19,15 @@ with open(MODEL_YAML) as f:
 
 # Path des input et output
 INPUT = PROJECT_ROOT / "runs" / model_name / "embeddings" / "cards_vectors.txt"
-OUTPUT = PROJECT_ROOT / "runs" / model_name / "projections" / "cards_tsne.csv"
+OUTPUT_DIR = PROJECT_ROOT / "runs" / model_name / "projections"
 
 # Chargement des embeddings à transformer
 card_embeddings = load_card_embeddings(INPUT)
 
-# Transformation des embeddings en dimension réduite
-tsne_df = compute_tsne_card_embeddings(card_embeddings)
 
-# Sauvegarde des coordonnées en dimension réduite
-save_tsne(tsne_df, OUTPUT)
+for c in [2,3] :
+    # Transformation des embeddings en dimension réduite
+    tsne = compute_tsne_card_embeddings(card_embeddings, n_components=c)
+    # Sauvegarde des coordonnées en dimension réduite
+    output = OUTPUT_DIR / f"cards_tsne_{c}d.csv"
+    save_tsne(tsne, output)
