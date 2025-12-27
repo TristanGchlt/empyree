@@ -17,3 +17,9 @@ run_dashboard:
 	poetry run python -m src.dashboard.app
 
 all: preprocess train project cluster
+
+clean:
+	rm -rf runs/*
+	rm -rf __pycache__
+	rm -rf src/**/__pycache__
+	rm -rf .pytest_cache
