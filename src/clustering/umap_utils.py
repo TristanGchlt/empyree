@@ -27,17 +27,47 @@ def fit_umap(
 def transform_umap(
     umap_model: UMAP,
     X: np.ndarray,
-    ids=None,
+    ids: Optional[Iterable] = None,
 ) -> pd.DataFrame:
     """
     Projette des embeddings dans un espace UMAP existant.
+
+    Args:
+        umap_model : modèle UMAP déjà entraîné (fit)
+        X          : array (n_samples, n_features) à projeter
+        ids        : identifiants optionnels (n_samples)
+
+    Returns:
+        DataFrame avec colonnes :
+            - id (optionnel)
+            - x, y (, z)
     """
+    # --- Sécurité dimensionnelle (UMAP ne le fait pas)
+    if X.ndim != 2:
+        raise ValueError(f"X must be 2D, got shape {X.shape}")
+
+    expected_dim = umap_model.embedding_.shape[1]
+    if X.shape[1] != umap_model._raw_data.shape[1]:
+        raise ValueError(
+            f"Embedding dimension mismatch: "
+            f"UMAP was fit on {umap_model._raw_data.shape[1]} dims, "
+            f"got {X.shape[1]}"
+        )
+
+    # --- Projection
     coords = umap_model.transform(X)
 
-    df = pd.DataFrame(coords, columns=[c for c in ["x", "y", "z"][: coords.shape[1]]])
+    # --- Colonnes selon dimension
+    coord_cols = ["x", "y", "z"][: coords.shape[1]]
+    df = pd.DataFrame(coords, columns=coord_cols)
 
+    # --- Ajout des ids si fournis
     if ids is not None:
-        df.insert(0, "id", ids)
+        if len(ids) != len(df):
+            raise ValueError(
+                f"ids length ({len(ids)}) does not match X ({len(df)})"
+            )
+        df.insert(0, "id", list(ids))
 
     return df
 
