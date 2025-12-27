@@ -67,6 +67,7 @@ Le projet est organisé pour séparer clairement :
 ├── scripts/                # Scripts reproductibles
 │
 ├── src/
+│   ├── embeddings/         # Entrainement du Card2Vec
 │   ├── preprocessing/      # Nettoyage et préparation des decks
 │   ├── clustering/         # Embeddings, clustering, projections (UMAP)
 │   └── dashboard/          # Application Dash
@@ -79,8 +80,6 @@ Le projet est organisé pour séparer clairement :
 │
 ├── poetry.lock
 └── pyproject.toml          # Gestion des dépendances (Poetry)
-
-
 ```
 
 ## Gestion des modèles et des runs

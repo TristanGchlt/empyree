@@ -9,6 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 # Import des fonctions utiles
+from src.embeddings.card2vec import train_card2vec, extract_card_embeddings
 from src.clustering.deck_embeddings import compute_all_deck_embeddings
 
 # Path du modèle courant
@@ -29,19 +30,10 @@ OUTPUT_DECK_EMBEDDINGS = OUTPUT_FOLDER / "embeddings" / "decks_vectors.csv"
 sentences = LineSentence(str(INPUT_CORPUS))
 
 # Récupératiou des paramètres
-with open(INPUT_CONFIG) as f:
-    cfg = yaml.safe_load(f)
+cfg = yaml.safe_load(open(INPUT_CONFIG))
 
 # Entrainement
-model = Word2Vec(
-    sentences=sentences,
-    vector_size=cfg['vector_size'],
-    window=cfg['window'],
-    min_count=cfg['min_count'],
-    workers=cfg['workers'],
-    sg=cfg['sg'],
-    epochs=cfg['epochs']
-)
+model = train_card2vec(sentences, cfg)
 
 # Création des embeddings de cartes
 card_embeddings = {card: model.wv[card] for card in model.wv.index_to_key}
