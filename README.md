@@ -50,12 +50,12 @@ Le projet est organisé pour séparer clairement :
 
 ```
 .
-├── src/
-│   ├── preprocessing/      # Nettoyage et préparation des decks
-│   ├── clustering/         # Embeddings, clustering, projections (UMAP)
-│   ├── dashboard/          # Application Dash
 │
-├── scripts/                # Scripts reproductibles
+├── configs/                # Configuration des modèles
+│
+├── data/
+│   ├── raw/                # Données brutes (non versionnées)
+│   └── processed/          # Données intermédiaires (non versionnées)
 │
 ├── runs/
 │   └── <model_name>/       # Outputs liés à un modèle donné (non versionnés)
@@ -64,13 +64,17 @@ Le projet est organisé pour séparer clairement :
 │       ├── projections/
 │       └── clustering/
 │
-├── data/
-│   ├── raw/                # Données brutes (non versionnées)
-│   └── processed/          # Données intermédiaires (non versionnées)
+├── scripts/                # Scripts reproductibles
 │
-├── configs/                # Configuration des modèles
+├── src/
+│   ├── preprocessing/      # Nettoyage et préparation des decks
+│   ├── clustering/         # Embeddings, clustering, projections (UMAP)
+│   ├── dashboard/          # Application Dash
 │
 ├── tests/                  # Tests unitaires
+│
+├── Makefile                # Liste de commandes utiles
+│
 └── README.md
 ```
 
@@ -88,9 +92,9 @@ Un run regroupe l’ensemble des artefacts produits par un modèle donné :
 
 Le modèle actif est défini dans le fichier :
 
-`
+```bash
 configs/current_model.yaml
-`
+```
 
 Ce fichier permet de changer de modèle **sans modifier le code**, simplement en pointant vers un autre dossier de run.
 
@@ -188,6 +192,74 @@ ce qui permet :
 
 Le dashboard constitue le point d’entrée principal pour l’exploration du projet
 et sera enrichi progressivement (détails de clusters, cartes signatures, etc.).
+
+## Exécution du pipeline
+
+Le projet est piloté via un Makefile qui permet d’exécuter chaque étape du pipeline de manière reproductible.
+
+### Installation des dépendances
+
+```bash
+make install_dependencies
+```
+
+Installe l’environnement Python via Poetry.
+
+### Pipeline complet
+
+```bash
+make all
+```
+
+Exécute l’ensemble du pipeline dans l’ordre suivant :
+
+- Prétraitement des decks
+
+Nettoyage et expansion des decks bruts pour construire le corpus d’entraînement.
+
+- Entraînement des embeddings de cartes (card2vec)
+
+Apprentissage d’un espace sémantique des cartes.
+
+- Clustering des decks
+
+Regroupement des decks dans l’espace des embeddings (avant réduction de dimension).
+
+- Projection UMAP (2D et 3D)
+
+Projection des cartes et des decks dans un espace commun pour la visualisation.
+
+### Exécution étape par étape
+
+Chaque étape peut être lancée indépendamment :
+
+```bash
+make preprocess   # Construction du corpus
+make train        # Entraînement card2vec
+make cluster      # Clustering des decks
+make project      # Projections UMAP
+```
+
+### Lancer le dashboard
+
+```bash
+make run_dashboard
+```
+
+Démarre l’application Dash pour explorer :
+
+- l’espace des cartes
+
+- l’espace des decks
+
+- les clusters et leurs relations
+
+### Nettoyage des sorties
+
+```bash
+make clean
+```
+Supprime les sorties générées (`runs/`, caches Python) sans affecter le code ou les données sources.
 
 ## État actuel et prochaines étapes
 

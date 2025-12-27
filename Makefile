@@ -10,5 +10,10 @@ train:
 cluster:
 	poetry run python scripts/run_clustering.py
 
+project:
+	poetry run python scripts/run_umap.py
+
 run_dashboard:
 	poetry run python -m src.dashboard.app
+
+all: preprocess train project cluster
