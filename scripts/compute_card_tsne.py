@@ -13,7 +13,6 @@ from src.clustering.deck_embeddings import load_card_embeddings
 
 # Path du modèle courant
 MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"
-
 with open(MODEL_YAML) as f:
     model_yaml = yaml.safe_load(f)
     model_name = model_yaml['current_model']

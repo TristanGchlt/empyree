@@ -31,7 +31,7 @@ layout = html.Div([
     html.Div([
         html.Label("Projection :"),
         dcc.RadioItems(
-            id="cards-tsne-dim",
+            id="cards-umap-dim",
             options=[
                 {"label": "2D", "value": 2},
                 {"label": "3D", "value": 3},
@@ -49,14 +49,14 @@ layout = html.Div([
         ),
     ], style={"width": "300px", "marginBottom": "15px"}),
 
-    dcc.Graph(id="cards-tsne-graph")
+    dcc.Graph(id="cards-umap-graph")
 ])
 
 
 
 @callback(
     Output("cards-faction-dropdown", "options"),
-    Input("cards-tsne-dim", "value")
+    Input("cards-umap-dim", "value")
 )
 def update_faction_options(dim):
     df = load_cards(dim)
@@ -65,8 +65,8 @@ def update_faction_options(dim):
 
 
 @callback(
-    Output("cards-tsne-graph", "figure"),
-    Input("cards-tsne-dim", "value"),
+    Output("cards-umap-graph", "figure"),
+    Input("cards-umap-dim", "value"),
     Input("cards-faction-dropdown", "value"),
 )
 def update_graph(dim, selected_faction):
@@ -85,7 +85,7 @@ def update_graph(dim, selected_faction):
             color_discrete_map=FACTION_COLORS,
             symbol_map=CARD_TYPE_SYMBOLS,
             hover_name="nom",
-            title="t-SNE 2D des cartes"
+            title="UMAP 2D des cartes"
         )
     else:
         fig = px.scatter_3d(
@@ -98,7 +98,7 @@ def update_graph(dim, selected_faction):
             color_discrete_map=FACTION_COLORS,
             symbol_map=CARD_TYPE_SYMBOLS,
             hover_name="nom",
-            title="t-SNE 3D des cartes"
+            title="UMAP 3D des cartes"
         )
 
     fig.update_traces(marker=dict(size=6, opacity=0.85))

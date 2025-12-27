@@ -13,9 +13,10 @@ with open(MODEL_YAML) as f:
 
 PROJECTIONS_DIR = PROJECT_ROOT / "runs" / model_name / "projections"
 CARDS_INFO = PROJECT_ROOT / "data" / "raw" / "cards_info.csv"
+PROJECTION_TYPE = "umap"
 
 def load_cards(dim) -> pd.DataFrame:
-    path = PROJECTIONS_DIR / f"cards_tsne_{dim}d.csv"
+    path = PROJECTIONS_DIR / f"cards_{PROJECTION_TYPE}_{dim}d.csv"
     tsne = pd.read_csv(path)
     tsne = tsne.rename(columns={tsne.columns[0]: "card_id"})
     meta_df = pd.read_csv(CARDS_INFO)

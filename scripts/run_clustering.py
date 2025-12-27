@@ -14,7 +14,6 @@ from src.clustering.deck_clustering import cluster_decks
 
 # Path du modèle courant
 MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"
-
 with open(MODEL_YAML) as f:
     model_yaml = yaml.safe_load(f)
     model_name = model_yaml['current_model']

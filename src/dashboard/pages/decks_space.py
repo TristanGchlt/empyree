@@ -24,7 +24,7 @@ layout = html.Div([
     html.Div([
         html.Label("Projection :"),
         dcc.RadioItems(
-            id="decks-tsne-dim",
+            id="decks-umap-dim",
             options=[{"label": "2D", "value": 2}, {"label": "3D", "value": 3}],
             value=2,
             inline=True
@@ -39,7 +39,7 @@ layout = html.Div([
         ),
     ], style={"width": "300px", "marginBottom": "15px"}),
 
-    dcc.Graph(id="decks-tsne-graph")
+    dcc.Graph(id="decks-umap-graph")
 ])
 
 def hex_to_rgb(hex_color: str):
@@ -85,7 +85,7 @@ def assign_cluster_colors(df: pd.DataFrame, base_colors: dict) -> dict:
 
 @callback(
     Output("decks-faction-dropdown", "options"),
-    Input("decks-tsne-dim", "value")
+    Input("decks-umap-dim", "value")
 )
 def update_faction_options(dim):
     df = load_decks(dim)
@@ -93,8 +93,8 @@ def update_faction_options(dim):
     return [{"label": f, "value": f} for f in factions]
 
 @callback(
-    Output("decks-tsne-graph", "figure"),
-    Input("decks-tsne-dim", "value"),
+    Output("decks-umap-graph", "figure"),
+    Input("decks-umap-dim", "value"),
     Input("decks-faction-dropdown", "value")
 )
 def update_graph(dim, selected_faction):
@@ -113,7 +113,7 @@ def update_graph(dim, selected_faction):
             color="cluster",
             color_discrete_map=color_map,
             hover_name="deck_id",
-            title="t-SNE 2D des decks"
+            title="UMAP 2D des decks"
         )
     else:
         fig = px.scatter_3d(
@@ -124,7 +124,7 @@ def update_graph(dim, selected_faction):
             color="cluster",
             color_discrete_map=color_map,
             hover_name="deck_id",
-            title="t-SNE 3D des decks"
+            title="UMAP 3D des decks"
         )
 
     fig.update_traces(marker=dict(size=6, opacity=0.85))

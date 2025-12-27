@@ -13,12 +13,13 @@ with open(MODEL_YAML) as f:
 
 PROJECTIONS_DIR = PROJECT_ROOT / "runs" / model_name / "projections"
 DECKS_CLUSTER_FILE = PROJECT_ROOT / "runs" / model_name / "clustering" / "decks_clusters.csv"
+PROJECTION_TYPE = "umap"
 
 def load_decks(dim: int) -> pd.DataFrame:
     """
     Charge les projections t-SNE et merge avec les informations de faction et cluster des decks.
     """
-    tsne_path = PROJECTIONS_DIR / f"decks_tsne_{dim}d.csv"
+    tsne_path = PROJECTIONS_DIR / f"decks_{PROJECTION_TYPE}_{dim}d.csv"
     tsne_df = pd.read_csv(tsne_path)
     tsne_df = tsne_df.rename(columns={tsne_df.columns[0]: "deck_id"})
 
