@@ -3,6 +3,7 @@ import pandas as pd
 from umap import UMAP
 from pathlib import Path
 import joblib
+from typing import Iterable, Optional
 
 
 def fit_umap(

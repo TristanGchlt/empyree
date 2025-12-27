@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import numpy as np
 from umap import UMAP
+import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
@@ -38,3 +39,12 @@ def test_umap_no_nan():
 
     assert not np.isnan(values).any()
     assert np.isfinite(values).all()
+
+def test_umap_dimension_mismatch_raises():
+    X_train = np.random.rand(50, 10)
+    X_bad = np.random.rand(10, 12)
+
+    umap = fit_umap(X_train)
+
+    with pytest.raises(ValueError):
+        transform_umap(umap, X_bad)
