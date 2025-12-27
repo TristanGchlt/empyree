@@ -69,13 +69,18 @@ Le projet est organisé pour séparer clairement :
 ├── src/
 │   ├── preprocessing/      # Nettoyage et préparation des decks
 │   ├── clustering/         # Embeddings, clustering, projections (UMAP)
-│   ├── dashboard/          # Application Dash
+│   └── dashboard/          # Application Dash
 │
 ├── tests/                  # Tests unitaires
 │
 ├── Makefile                # Liste de commandes utiles
 │
-└── README.md
+├── README.md
+│
+├── poetry.lock
+└── pyproject.toml          # Gestion des dépendances (Poetry)
+
+
 ```
 
 ## Gestion des modèles et des runs
