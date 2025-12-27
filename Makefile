@@ -11,7 +11,8 @@ cluster:
 	poetry run python scripts/run_clustering.py
 
 project:
-	poetry run python scripts/run_umap.py
+	poetry run python scripts/run_card_umap.py
+	poetry run python scripts/run_deck_umap.py
 
 run_dashboard:
 	poetry run python -m src.dashboard.app

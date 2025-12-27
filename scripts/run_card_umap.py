@@ -8,8 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 # Import des fonctions utiles
-from src.clustering.deck_embeddings import load_card_embeddings
-from src.clustering.umap_pipeline import run_reference_umap
+from src.embeddings.deck_embeddings import load_card_embeddings
+from src.projection.umap_pipeline import run_reference_umap
 
 # Path du modèle courant
 MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"

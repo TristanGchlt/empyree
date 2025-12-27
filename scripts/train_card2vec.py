@@ -1,4 +1,3 @@
-from gensim.models import Word2Vec
 from gensim.models.word2vec import LineSentence
 from pathlib import Path
 import yaml
@@ -9,8 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 # Import des fonctions utiles
-from src.embeddings.card2vec import train_card2vec, extract_card_embeddings
-from src.clustering.deck_embeddings import compute_all_deck_embeddings
+from src.embeddings.card2vec import train_card2vec
+from src.embeddings.deck_embeddings import compute_all_deck_embeddings
 
 # Path du modèle courant
 MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"

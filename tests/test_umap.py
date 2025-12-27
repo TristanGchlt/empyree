@@ -7,7 +7,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-from src.clustering.umap_utils import fit_umap, transform_umap
+from src.projection.umap_utils import fit_umap, transform_umap
 
 def test_fit_umap_runs():
     X = np.random.rand(50, 10)
