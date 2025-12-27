@@ -11,7 +11,7 @@ def test_tsne_output_shape():
     X = np.random.rand(20, 10)
     ids = list(range(20))
 
-    tsne = compute_tsne(X, ids, n_components=2)
+    tsne = compute_tsne(X, ids, n_components=2, perplexity=6)
 
     assert tsne.shape == (20, 3)  # id + x + y
     assert tsne[["x", "y"]].isna().sum().sum() == 0

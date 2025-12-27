@@ -39,7 +39,11 @@ def compute_tsne(
     coords = tsne.fit_transform(X)
 
     columns = ["x", "y"] if n_components == 2 else ["x", "y", "z"]
-    return pd.DataFrame(coords, index=ids, columns=columns)
+
+    df = pd.DataFrame(coords, columns=columns)
+    df.insert(0, "id", ids)
+
+    return df
 
 
 def save_tsne(df: pd.DataFrame, output: Path):
