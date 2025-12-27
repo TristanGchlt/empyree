@@ -9,8 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 # Import des fonctions utiles
-from src.clustering.deck_embeddings import compute_all_deck_embeddings, load_card_embeddings
-from src.clustering.deck_clustering import cluster_decks
+from src.clustering.deck_clustering_pipeline import run_deck_clustering
 
 # Path du modèle courant
 MODEL_YAML = PROJECT_ROOT / "configs" / "current_model.yaml"
@@ -26,16 +25,12 @@ OUTPUT_CLUSTER = PROJECT_ROOT / "runs" / model_name / "clustering" / "decks_clus
 
 # Chargement des embeddings
 deck_embeddings = pd.read_csv(INPUT_EMBEDDINGS)
+card_metadata = pd.read_csv(INPUT_INFO)
 
-# Récupération des factions
-metadata = pd.read_csv(INPUT_INFO)
-card_to_faction = metadata.set_index("reference")["faction"].to_dict()
-deck_embeddings["faction"] = deck_embeddings["cards"].apply(
-    lambda cards: card_to_faction.get(ast.literal_eval(cards)[0], "Unknown")
+clusters = run_deck_clustering(
+    deck_embeddings=deck_embeddings,
+    card_metadata=card_metadata,
 )
 
-# Clustering intra faction
-deck_embeddings["cluster"] = cluster_decks(deck_embeddings)
-
-# Sauvegarde des clusters
-deck_embeddings[["deck_id", "faction", "cluster"]].to_csv(OUTPUT_CLUSTER, index=False)
+OUTPUT_CLUSTER.parent.mkdir(parents=True, exist_ok=True)
+clusters.to_csv(OUTPUT_CLUSTER, index=False)
