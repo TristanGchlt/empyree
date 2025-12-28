@@ -23,6 +23,7 @@ def test_umap_transform_shape():
     coords = transform_umap(umap, X_test)
 
     assert coords.shape == (10, 2)
+    assert list(coords.columns) == ["x", "y"]
 
 def test_umap_no_nan():
     X = np.random.rand(30, 8)

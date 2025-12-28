@@ -2,31 +2,35 @@ import pandas as pd
 
 from src.clustering.deck_clustering_pipeline import run_deck_clustering
 
-def test_run_deck_clustering_basic():
+def test_run_deck_clustering_basic(small_card_metadata):
     deck_embeddings = pd.DataFrame({
         "deck_id": [0, 1, 2],
         "cards": [
-            "['CARD_A']",
-            "['CARD_A']",
-            "['CARD_B']"
+            "['A']",
+            "['A']",
+            "['C']"
         ],
         "vector_0": [0.0, 0.1, 10.0],
         "vector_1": [0.0, 0.1, 10.0],
     })
 
-    card_metadata = pd.DataFrame({
-        "reference": ["CARD_A", "CARD_B"],
-        "faction": ["Ordis", "Lyra"]
-    })
+    result = run_deck_clustering(
+        deck_embeddings=deck_embeddings,
+        card_metadata=small_card_metadata,
+    )
 
-    result = run_deck_clustering(deck_embeddings, card_metadata)
-
-    # Colonnes attendues
+    # Structure de sortie
     assert set(result.columns) == {"deck_id", "faction", "cluster"}
+    assert len(result) == 3
 
-    # Même faction pour les deux premiers decks
-    assert result.loc[result["deck_id"] == 0, "faction"].iloc[0] == "Ordis"
-    assert result.loc[result["deck_id"] == 1, "faction"].iloc[0] == "Ordis"
+    faction_by_deck = result.set_index("deck_id")["faction"].to_dict()
 
-    # Cluster intra-faction : valeurs numériques
+    # Factions assignées par deck
+    assert faction_by_deck[0] == "Ordis"
+    assert faction_by_deck[1] == "Ordis"
+    assert faction_by_deck[2] == "Lyra"
+
+
+    # Cluster intra-faction valides
     assert result["cluster"].notna().all()
+    assert result["cluster"].apply(lambda x: isinstance(x, int)).all()

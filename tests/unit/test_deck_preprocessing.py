@@ -6,7 +6,13 @@ def test_preprocess_basic():
 
     # CORE_U_XYZ est unique -> doit être retiré
     # Quantités doivent être correctement étendues
-    assert processed == ["CORE_ABC","CORE_ABC","CORE_ABC","CORE_DEF","CORE_DEF"]
+    assert processed == [
+        "CORE_ABC",
+        "CORE_ABC",
+        "CORE_ABC",
+        "CORE_DEF",
+        "CORE_DEF"
+    ]
 
 def test_preprocess_empty_unique():
     deck_string = "[1 CORE_U_XYZ]"
@@ -21,3 +27,10 @@ def test_preprocess_rename_ks():
 
     # COREKS doit être renommé en CORE
     assert processed == ["CORE_ABC"]
+
+def test_preprocess_empty_string():
+    assert preprocess_deck("") == []
+
+def test_preprocess_extra_spaces():
+    deck_string = "[ 2   CORE_ABC ]"
+    assert preprocess_deck(deck_string) == ["CORE_ABC", "CORE_ABC"]

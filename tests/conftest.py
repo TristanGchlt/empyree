@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import pandas as pd
 from pathlib import Path
 import sys
 
@@ -67,3 +68,14 @@ def small_deck_embeddings_df(small_decks, small_card_embeddings):
         decks=small_decks,
         card_embeddings=small_card_embeddings,
     )
+
+@pytest.fixture
+def small_card_metadata():
+    return pd.DataFrame({
+        "reference": ["A", "B", "C", "D"],
+        "faction": ["Ordis", "Ordis", "Lyra", "Lyra"],
+    })
+
+@pytest.fixture
+def rng():
+    return np.random.default_rng(seed=42)

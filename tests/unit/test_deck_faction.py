@@ -19,6 +19,7 @@ def test_assign_deck_factions_basic():
 
     result = assign_deck_factions(deck_df, card_to_faction)
 
+    assert "faction" in result.columns
     assert list(result["faction"]) == ["Ordis", "Lyra"]
 
 def test_assign_deck_factions_unknown_card():
