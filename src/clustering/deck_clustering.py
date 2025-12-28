@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 
-def _find_best_k(X: np.ndarray, k_min: int = 1, k_max: int = 10) -> int:
+def _find_best_k(X: np.ndarray, k_min: int = 1, k_max: int = 5) -> int:
     """
     Détermine le meilleur k via le score de silhouette.
     """

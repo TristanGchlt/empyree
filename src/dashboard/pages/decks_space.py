@@ -1,145 +1,181 @@
 from dash import dcc, html, register_page, callback
 from dash.dependencies import Input, Output
 import plotly.express as px
-from matplotlib import colors as mcolors
-import pandas as pd
 
 from src.dashboard.data.deck_data import load_decks
 
 register_page(__name__, path="/decks-space", name="Espace des decks")
 
-# Couleurs de base par faction
-FACTION_COLORS = {
-    "Axiom": "#8B5A2B",
-    "Bravos": "#C0392B",
-    "Lyra": "#E056FD",
-    "Muna": "#27AE60",
-    "Ordis": "#2980B9",
-    "Yzmir": "#8E44AD",
+# -------------------------------------------------------------------
+# Couleurs par héros (stables, lisibles, définies manuellement)
+# -------------------------------------------------------------------
+
+HERO_COLORS = {
+    # Axiom
+    "Sierra": "#D7B899",
+    "Treyst": "#A47148",
+    "Subhash": "#6F3B1F",
+    "Isaree": "#3B2416",
+
+    # Bravos
+    "Kojo": "#E53935",
+    "Basira": "#D32F2F",
+    "Atsadi": "#B71C1C",
+    "Sol": "#7F0000",
+
+    # Lyra
+    "Nevenka": "#F8BBD0",
+    "Fen": "#F06292",
+    "Auraq": "#EC407A",
+    "Nadir": "#AD1457",
+
+    # Muna
+    "Teija": "#81C784",
+    "Rin": "#43A047",
+    "Arjun": "#2E7D32",
+    "Kauri": "#1B5E20",
+
+    # Ordis
+    "Sigismar": "#4FC3F7",
+    "Gulrang": "#1E88E5",
+    "Waru": "#006064",
+    "Zhen": "#0D1B2A",
+
+    # Yzmir
+    "Akesha": "#CE93D8",
+    "Afanas": "#8E24AA",
+    "Lindiwe": "#6A1B9A",
+    "Moyo": "#3E1B47",
 }
 
-layout = html.Div([
-    html.H2("Espace des decks"),
+# -------------------------------------------------------------------
+# Symboles pour les clusters (max 5 comme tu l’as fixé)
+# -------------------------------------------------------------------
 
-    html.Div([
-        html.Label("Projection :"),
-        dcc.RadioItems(
-            id="decks-umap-dim",
-            options=[{"label": "2D", "value": 2}, {"label": "3D", "value": 3}],
-            value=2,
-            inline=True
+CLUSTER_SYMBOLS = ["circle", "square", "diamond", "cross", "x"]
+
+def build_cluster_symbol_map(df):
+    """
+    Associe un symbole par cluster intra-héros.
+    Les clusters sont déjà uniques (ex: SIG1, SIG2, …)
+    """
+    symbol_map = {}
+    clusters = sorted(df["cluster"].dropna().unique())
+
+    for i, cluster in enumerate(clusters):
+        symbol_map[cluster] = CLUSTER_SYMBOLS[i % len(CLUSTER_SYMBOLS)]
+
+    return symbol_map
+
+
+# -------------------------------------------------------------------
+# Layout
+# -------------------------------------------------------------------
+
+layout = html.Div(
+    [
+        html.H2("Espace des decks"),
+
+        html.Div(
+            [
+                html.Label("Projection :"),
+                dcc.RadioItems(
+                    id="decks-umap-dim",
+                    options=[
+                        {"label": "2D", "value": 2},
+                        {"label": "3D", "value": 3},
+                    ],
+                    value=2,
+                    inline=True,
+                ),
+            ],
+            style={"marginBottom": "10px"},
         ),
-    ], style={"marginBottom": "10px"}),
 
-    html.Div([
-        html.Label("Choisir une faction :"),
-        dcc.Dropdown(
-            id="decks-faction-dropdown",
-            placeholder="Toutes factions"
+        html.Div(
+            [
+                html.Label("Choisir un héros :"),
+                dcc.Dropdown(
+                    id="decks-hero-dropdown",
+                    placeholder="Tous les héros",
+                ),
+            ],
+            style={"width": "300px", "marginBottom": "15px"},
         ),
-    ], style={"width": "300px", "marginBottom": "15px"}),
 
-    dcc.Graph(id="decks-umap-graph")
-])
+        dcc.Checklist(
+            id="show-clusters-toggle",
+            options=[{"label": "Afficher les clusters", "value": "show"}],
+            value=[],
+            inline=True,
+            style={"marginBottom": "10px"},
+        ),
 
-def hex_to_rgb(hex_color: str):
-    hex_color = hex_color.lstrip("#")
-    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        dcc.Graph(id="decks-umap-graph"),
+    ]
+)
 
-def rgb_to_hex(rgb):
-    return "#{:02x}{:02x}{:02x}".format(*rgb)
-
-def make_shades(base_color: str, n: int) -> list[str]:
-    """
-    Génère n nuances d'une couleur de base, du clair au foncé.
-    n peut être indéterminé.
-    """
-    if n == 1:
-        return [base_color]
-    
-    rgb = mcolors.to_rgb(base_color)
-    min_factor = 0.6  # plus clair
-    max_factor = 1.0  # plus foncé (la couleur de base)
-    
-    shades = []
-    for i in range(n):
-        factor = min_factor + (max_factor - min_factor) * i / (n - 1)
-        shade = tuple(min(1, c * factor) for c in rgb)
-        shades.append(mcolors.to_hex(shade))
-    return shades
-
-def assign_cluster_colors(df: pd.DataFrame, base_colors: dict) -> dict:
-    """
-    Crée un dictionnaire cluster -> couleur en fonction de la couleur de la faction.
-    """
-    color_map = {}
-    for faction, base_color in base_colors.items():
-        clusters = sorted(df.loc[df['faction'] == faction, 'cluster'].unique())
-        n = len(clusters)
-        if n == 0:
-            continue
-        shades = make_shades(base_color, n)  # renvoie une liste de couleurs
-        for cluster, shade in zip(clusters, shades):
-            color_map[cluster] = shade
-    return color_map
+# -------------------------------------------------------------------
+# Callback : options du dropdown héros
+# -------------------------------------------------------------------
 
 @callback(
-    Output("decks-faction-dropdown", "options"),
-    Input("decks-umap-dim", "value")
+    Output("decks-hero-dropdown", "options"),
+    Input("decks-umap-dim", "value"),
 )
-def update_faction_options(dim):
+def update_hero_options(dim):
     df = load_decks(dim)
-    factions = sorted(df["faction"].dropna().unique())
-    return [{"label": f, "value": f} for f in factions]
+    heroes = sorted(df["hero_name"].dropna().unique())
+    return [{"label": h, "value": h} for h in heroes]
+
+
+# -------------------------------------------------------------------
+# Callback principal : figure
+# -------------------------------------------------------------------
 
 @callback(
     Output("decks-umap-graph", "figure"),
     Input("decks-umap-dim", "value"),
-    Input("decks-faction-dropdown", "value")
+    Input("decks-hero-dropdown", "value"),
+    Input("show-clusters-toggle", "value"),
 )
-def update_graph(dim, selected_faction):
+def update_graph(dim, selected_hero, show_clusters):
+
     df = load_decks(dim)
-    if selected_faction:
-        df = df[df["faction"] == selected_faction]
 
-    # Assigner les couleurs cluster/faction
-    color_map = assign_cluster_colors(df, FACTION_COLORS)
+    if selected_hero:
+        df = df[df["hero_name"] == selected_hero]
 
-    if dim == 2:
-        fig = px.scatter(
-            df,
-            x="x",
-            y="y",
-            color="cluster",
-            color_discrete_map=color_map,
-            hover_name="deck_id",
-            title="UMAP 2D des decks"
-        )
-    else:
-        fig = px.scatter_3d(
-            df,
-            x="x",
-            y="y",
-            z="z",
-            color="cluster",
-            color_discrete_map=color_map,
-            hover_name="deck_id",
-            title="UMAP 3D des decks"
-        )
+    show_clusters = "show" in show_clusters
 
-    fig.update_traces(marker=dict(size=6, opacity=0.85))
-    fig.update_layout(height=700)
+    # ----------------------------------------------------------------
+    # Construction de la figure (UNE SEULE FOIS)
+    # ----------------------------------------------------------------
 
-    # Légende plus propre : regrouper par faction
-    for faction, base_color in FACTION_COLORS.items():
-        fig.add_scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color=base_color, size=8),
-            name=faction
-        )
+    scatter_fn = px.scatter if dim == 2 else px.scatter_3d
+
+    scatter_kwargs = dict(
+        data_frame=df,
+        x="x",
+        y="y",
+        color="hero_name",
+        color_discrete_map=HERO_COLORS,
+        hover_name="hero_name",
+        title="Espace des decks",
+    )
+
+    if dim == 3:
+        scatter_kwargs["z"] = "z"
+
+    if show_clusters:
+        scatter_kwargs["symbol"] = "cluster"
+        scatter_kwargs["symbol_map"] = build_cluster_symbol_map(df)
+        scatter_kwargs["hover_name"] = "cluster"
+        scatter_kwargs["title"] = "Espace des decks — clusters intra-héros"
+
+    fig = scatter_fn(**scatter_kwargs)
 
     fig.update_traces(marker=dict(size=6, opacity=0.85))
-    fig.update_layout(height=700, legend_title_text="Faction")
+    fig.update_layout(height=700, legend_title_text="Héros")
+
     return fig
