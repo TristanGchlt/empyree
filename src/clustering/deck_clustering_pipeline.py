@@ -100,4 +100,4 @@ def run_deck_clustering(
         group_column="hero",
     )
 
-    return df[["deck_id", "hero", "faction", "cluster"]]
+    return df[["deck_id", "faction", "hero", "cluster"]]
