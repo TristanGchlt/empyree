@@ -36,38 +36,40 @@ def _find_best_k(X: np.ndarray, k_min: int = 1, k_max: int = 10) -> int:
     return best_k
 
 
-def cluster_decks(deck_vectors: pd.DataFrame) -> pd.Series:
+def cluster_decks(
+    deck_vectors: pd.DataFrame,
+    group_column: str = "faction",
+) -> pd.Series:
     """
-    Effectue le clustering des decks **au sein de chaque faction réelle**.
-
-    Prérequis :
-        - deck_df contient une colonne 'faction'
-        - deck_df contient les colonnes vector_*
+    Effectue un clustering intra-groupe (faction ou héros).
 
     Returns:
-        pd.Series des labels de clusters intra-faction, indexée par deck_id
+        pd.Series indexée comme deck_vectors, labels numériques
     """
     embedding_cols = [c for c in deck_vectors.columns if c.startswith("vector_")]
-    cluster_labels = pd.Series(index=deck_vectors.index, dtype=object)
+    cluster_labels = pd.Series(index=deck_vectors.index, dtype=int)
 
-    for faction in deck_vectors["faction"].unique():
-        mask = deck_vectors["faction"] == faction
+    for group in deck_vectors[group_column].unique():
+        mask = deck_vectors[group_column] == group
         X = deck_vectors.loc[mask, embedding_cols].to_numpy()
 
-        # Cas très petits groupes
+        # Groupes trop petits
         if X.shape[0] < 3:
-            cluster_labels.loc[mask] = f"{faction[0]}1"
+            cluster_labels.loc[mask] = 0
             continue
 
         k_opt = _find_best_k(X)
-        print(f"Nb de cluster optimaux pour {faction} : {k_opt}")
+
         if k_opt == 1:
-            cluster_labels.loc[mask] = f"{faction[0]}1"
+            cluster_labels.loc[mask] = 0
             continue
 
-        kmeans = KMeans(n_clusters=k_opt, random_state=1, n_init="auto")
+        kmeans = KMeans(
+            n_clusters=k_opt,
+            random_state=1,
+            n_init="auto"
+        )
         labels = kmeans.fit_predict(X)
-
-        cluster_labels.loc[mask] = [f"{faction[0]}{l+1}" for l in labels]
+        cluster_labels.loc[mask] = labels
 
     return cluster_labels

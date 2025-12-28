@@ -26,16 +26,78 @@ def assign_deck_factions(
     df["faction"] = df[cards_column].apply(infer_faction)
     return df
 
+def assign_deck_hero(
+    deck_df: pd.DataFrame,
+    card_metadata: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Assigne le héros unique de chaque deck.
+
+    Prérequis :
+    - deck_df contient une colonne 'cards' (liste sérialisée)
+    - card_metadata contient 'reference' et 'card_type'
+    - card_type == 'Héros' identifie les héros
+
+    Raises:
+        ValueError si aucun ou plusieurs héros sont trouvés
+    """
+
+    hero_cards = set(
+        card_metadata.loc[
+            card_metadata["card_type"] == "Héros", "reference"
+        ]
+    )
+
+    def extract_hero(cards_raw):
+        try:
+            cards = ast.literal_eval(cards_raw)
+        except Exception:
+            raise ValueError("Invalid cards format")
+
+        heroes = [c for c in cards if c in hero_cards]
+
+        if len(heroes) == 0:
+            raise ValueError("No hero found in deck")
+        if len(heroes) > 1:
+            raise ValueError("Multiple heroes found in deck")
+
+        return heroes[0]
+
+    df = deck_df.copy()
+    df["hero"] = df["cards"].apply(extract_hero)
+
+    return df
+
+
 def run_deck_clustering(
     deck_embeddings: pd.DataFrame,
     card_metadata: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Effectue un clustering intra-faction des decks.
+    Pipeline complet :
+    - détection du héros
+    - récupération de la faction via le héros
+    - clustering intra-héros
     """
-    card_to_faction = card_metadata.set_index("reference")["faction"].to_dict()
 
-    df = assign_deck_factions(deck_embeddings, card_to_faction)
-    df["cluster"] = cluster_decks(df)
+    df = deck_embeddings.copy()
 
-    return df[["deck_id", "faction", "cluster"]]
+    df = assign_deck_hero(df, card_metadata)
+
+    hero_to_faction = (
+        card_metadata
+        .set_index("reference")["faction"]
+        .to_dict()
+    )
+
+    df["faction"] = df["hero"].map(hero_to_faction)
+
+    if df["faction"].isna().any():
+        raise ValueError("Faction missing for at least one hero")
+
+    df["cluster"] = cluster_decks(
+        df,
+        group_column="hero",
+    )
+
+    return df[["deck_id", "hero", "faction", "cluster"]]

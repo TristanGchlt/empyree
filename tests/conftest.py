@@ -77,5 +77,13 @@ def small_card_metadata():
     })
 
 @pytest.fixture
+def card_metadata_with_heroes():
+    return pd.DataFrame({
+        "reference": ["A", "B", "C", "H1", "H2"],
+        "card_type": ["Sort", "Personnage", "Permanent", "Héros", "Héros"],
+        "faction": ["Ordis", "Ordis", "Lyra", "Ordis", "Lyra"],
+    })
+
+@pytest.fixture
 def rng():
     return np.random.default_rng(seed=42)
