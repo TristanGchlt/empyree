@@ -34,3 +34,18 @@ def test_run_deck_clustering_basic(small_card_metadata):
     # Cluster intra-faction valides
     assert result["cluster"].notna().all()
     assert result["cluster"].apply(lambda x: isinstance(x, str)).all()
+
+def test_cluster_names_use_hero_name_prefix(small_card_metadata):
+    deck_embeddings = pd.DataFrame({
+        "deck_id": [0, 1],
+        "cards": ["['A']", "['A']"],
+        "vector_0": [0.0, 0.1],
+        "vector_1": [0.0, 0.1],
+    })
+
+    result = run_deck_clustering(deck_embeddings, small_card_metadata)
+
+    clusters = result["cluster"].tolist()
+
+    assert clusters[0].startswith("ORD")
+    assert clusters[1].startswith("ORD")

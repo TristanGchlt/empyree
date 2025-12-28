@@ -68,6 +68,48 @@ def assign_deck_hero(
 
     return df
 
+def hero_prefix_from_metadata(hero_ref: str, card_metadata: pd.DataFrame) -> str:
+    """
+    Retourne les 3 premières lettres du nom du héros (en majuscules)
+    à partir de sa référence.
+    """
+    row = card_metadata.loc[
+        card_metadata["reference"] == hero_ref
+    ]
+
+    if row.empty:
+        return "UNK"
+
+    hero_name = row.iloc[0]["name"]
+
+    return hero_name[:3].upper()
+
+def rename_clusters_by_hero_name(
+    df: pd.DataFrame,
+    card_metadata: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Renomme les clusters sous la forme <HER><n>
+    où HER = 3 premières lettres du nom du héros.
+    """
+    df = df.copy()
+    renamed = []
+
+    for hero_ref, sub in df.groupby("hero"):
+        prefix = hero_prefix_from_metadata(hero_ref, card_metadata)
+
+        cluster_ids = sorted(sub["cluster"].unique())
+        mapping = {
+            cid: f"{prefix}{i+1}"
+            for i, cid in enumerate(cluster_ids)
+        }
+
+        renamed.append(
+            sub.assign(cluster=sub["cluster"].map(mapping))
+        )
+
+    return pd.concat(renamed).sort_index()
+
 
 def run_deck_clustering(
     deck_embeddings: pd.DataFrame,
@@ -99,5 +141,6 @@ def run_deck_clustering(
         df,
         group_column="hero",
     )
+    df = rename_clusters_by_hero_name(df, card_metadata)
 
     return df[["deck_id", "faction", "hero", "cluster"]]

@@ -11,12 +11,18 @@ def test_deck_embeddings_to_clusters(small_deck_embeddings_df):
         "reference": ["A", "B", "C", "D"],
         "faction": ["Ordis", "Ordis", "Lyra", "Lyra"],
         "card_type": ["Héros", "Sort", "Héros", "Sort"],
+        "name": ["Ordis Alpha", "Ordis Spell", "Lyra Eclipse", "Lyra Spell"],
     })
 
     result = run_deck_clustering(
         deck_embeddings=small_deck_embeddings_df,
         card_metadata=card_metadata,
     )
+
+    clusters = result.set_index("deck_id")["cluster"]
+
+    assert clusters[0][:3] in {"ORD", "LYR"}
+    assert clusters[1][:3] in {"ORD", "LYR"}
 
     assert set(result.columns) == {"deck_id", "faction", "hero", "cluster"}
     assert result["cluster"].notna().all()

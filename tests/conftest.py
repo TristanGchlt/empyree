@@ -83,6 +83,7 @@ def card_metadata_with_heroes():
         "reference": ["A", "B", "C", "H1", "H2"],
         "card_type": ["Sort", "Personnage", "Permanent", "Héros", "Héros"],
         "faction": ["Ordis", "Ordis", "Lyra", "Ordis", "Lyra"],
+        "name": ["Ordis Alpha", "Ordis Spell", "Lyra Eclipse", "Lyra Spell"],
     })
 
 @pytest.fixture
