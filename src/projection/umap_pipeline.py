@@ -34,7 +34,7 @@ def run_projection_umap(
     output_proj_dir.mkdir(parents=True, exist_ok=True)
 
     for dim in dims:
-        umap = load_umap_model(model_dir / f"umap_cards_{dim}d.joblib")
+        umap = load_umap_model(model_dir / f"cards_umap_{dim}d.joblib")
         coords = transform_umap(umap, X, ids=ids)
 
         coords.to_csv(output_proj_dir / f"{prefix}_{dim}d.csv", index=False)
