@@ -18,6 +18,6 @@ def test_deck_embeddings_to_clusters(small_deck_embeddings_df):
         card_metadata=card_metadata,
     )
 
-    assert set(result.columns) == {"deck_id", "faction", "cluster"}
+    assert set(result.columns) == {"deck_id", "faction", "hero", "cluster"}
     assert result["cluster"].notna().all()
     assert result["faction"].isin(["Ordis", "Lyra"]).all()
