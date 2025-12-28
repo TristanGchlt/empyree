@@ -20,7 +20,7 @@ def test_run_deck_clustering_basic(small_card_metadata):
     )
 
     # Structure de sortie
-    assert set(result.columns) == {"deck_id", "faction", "cluster"}
+    assert set(result.columns) == {"deck_id", "faction", "hero", "cluster"}
     assert len(result) == 3
 
     faction_by_deck = result.set_index("deck_id")["faction"].to_dict()

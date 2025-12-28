@@ -36,10 +36,10 @@ def small_decks():
     - cartes répétées
     """
     return [
-        ["A", "B", "C"],
         ["A", "B"],
+        ["A"],
         ["C", "D"],
-        ["A", "C"],
+        ["C"],
     ]
 
 
