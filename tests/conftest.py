@@ -74,6 +74,7 @@ def small_card_metadata():
     return pd.DataFrame({
         "reference": ["A", "B", "C", "D"],
         "faction": ["Ordis", "Ordis", "Lyra", "Lyra"],
+        "card_type": ["Héros", "Sort", "Héros", "Sort"],
     })
 
 @pytest.fixture

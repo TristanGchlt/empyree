@@ -55,13 +55,13 @@ def cluster_decks(
 
         # Groupes trop petits
         if X.shape[0] < 3:
-            cluster_labels.loc[mask] = 0
+            cluster_labels.loc[mask] = "0"
             continue
 
         k_opt = _find_best_k(X)
 
         if k_opt == 1:
-            cluster_labels.loc[mask] = 0
+            cluster_labels.loc[mask] = "0"
             continue
 
         kmeans = KMeans(

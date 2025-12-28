@@ -10,6 +10,7 @@ def test_deck_embeddings_to_clusters(small_deck_embeddings_df):
     card_metadata = pd.DataFrame({
         "reference": ["A", "B", "C", "D"],
         "faction": ["Ordis", "Ordis", "Lyra", "Lyra"],
+        "card_type": ["Héros", "Sort", "Héros", "Sort"],
     })
 
     result = run_deck_clustering(
