@@ -1,14 +1,11 @@
 from dash import dcc, html, register_page, callback
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 
 from src.dashboard.data.deck_data import load_decks
+from src.dashboard.data.card_data import load_cards
 
 register_page(__name__, path="/decks-space", name="Espace des decks")
-
-# -------------------------------------------------------------------
-# Couleurs par héros (stables, lisibles, définies manuellement)
-# -------------------------------------------------------------------
 
 HERO_COLORS = {
     # Axiom
@@ -48,9 +45,6 @@ HERO_COLORS = {
     "Moyo": "#3E1B47",
 }
 
-# -------------------------------------------------------------------
-# Symboles pour les clusters (max 5 comme tu l’as fixé)
-# -------------------------------------------------------------------
 
 CLUSTER_SYMBOLS = ["circle", "square", "diamond", "cross", "x"]
 
@@ -67,10 +61,6 @@ def build_cluster_symbol_map(df):
 
     return symbol_map
 
-
-# -------------------------------------------------------------------
-# Layout
-# -------------------------------------------------------------------
 
 layout = html.Div(
     [
@@ -92,16 +82,23 @@ layout = html.Div(
             style={"marginBottom": "10px"},
         ),
 
-        html.Div(
-            [
-                html.Label("Choisir un héros :"),
-                dcc.Dropdown(
-                    id="decks-hero-dropdown",
-                    placeholder="Tous les héros",
-                ),
-            ],
-            style={"width": "300px", "marginBottom": "15px"},
-        ),
+        html.Div([
+            html.Label("Faction :"),
+            dcc.Dropdown(
+                id="decks-faction-dropdown",
+                placeholder="Toutes les factions",
+                clearable=True,
+            ),
+        ], style={"width": "250px", "marginBottom": "10px"}),
+
+        html.Div([
+            html.Label("Héros :"),
+            dcc.Dropdown(
+                id="decks-hero-dropdown",
+                placeholder="Tous les héros",
+                clearable=True,
+            ),
+        ], style={"width": "250px", "marginBottom": "15px"}),
 
         dcc.Checklist(
             id="show-clusters-toggle",
@@ -111,9 +108,30 @@ layout = html.Div(
             style={"marginBottom": "10px"},
         ),
 
+        dcc.Checklist(
+            id="show-cards-toggle",
+            options=[{"label": "Afficher les cartes", "value": "show"}],
+            value=[],
+            inline=True,
+            style={"marginBottom": "10px"}
+        ),
+
         dcc.Graph(id="decks-umap-graph"),
     ]
 )
+
+# -------------------------------------------------------------------
+# Callback : options du dropdown faction
+# -------------------------------------------------------------------
+
+@callback(
+    Output("decks-faction-dropdown", "options"),
+    Input("decks-umap-dim", "value"),
+)
+def update_faction_options(dim):
+    df = load_decks(dim)
+    factions = sorted(df["faction"].dropna().unique())
+    return [{"label": f, "value": f} for f in factions]
 
 # -------------------------------------------------------------------
 # Callback : options du dropdown héros
@@ -122,12 +140,31 @@ layout = html.Div(
 @callback(
     Output("decks-hero-dropdown", "options"),
     Input("decks-umap-dim", "value"),
+    Input("decks-faction-dropdown", "value"),
 )
-def update_hero_options(dim):
+def update_hero_options(dim, selected_faction):
     df = load_decks(dim)
+
+    if selected_faction:
+        df = df[df["faction"] == selected_faction]
+
     heroes = sorted(df["hero_name"].dropna().unique())
     return [{"label": h, "value": h} for h in heroes]
 
+# -------------------------------------------------------------------
+# Callback : Héros invalide
+# -------------------------------------------------------------------
+
+@callback(
+    Output("decks-hero-dropdown", "value"),
+    Input("decks-hero-dropdown", "options"),
+    State("decks-hero-dropdown", "value"),
+)
+def reset_invalid_hero(hero_options, selected_hero):
+    valid_values = {opt["value"] for opt in hero_options}
+    if selected_hero in valid_values:
+        return selected_hero
+    return None
 
 # -------------------------------------------------------------------
 # Callback principal : figure
@@ -136,24 +173,32 @@ def update_hero_options(dim):
 @callback(
     Output("decks-umap-graph", "figure"),
     Input("decks-umap-dim", "value"),
+    Input("decks-faction-dropdown", "value"),
     Input("decks-hero-dropdown", "value"),
     Input("show-clusters-toggle", "value"),
+    Input("show-cards-toggle", "value"),
 )
-def update_graph(dim, selected_hero, show_clusters):
+def update_graph(dim, selected_faction, selected_hero, show_clusters, show_cards):
 
+    # --------------------
+    # Load & filter decks
+    # --------------------
     df = load_decks(dim)
+
+    if selected_faction:
+        df = df[df["faction"] == selected_faction]
 
     if selected_hero:
         df = df[df["hero_name"] == selected_hero]
 
     show_clusters = "show" in show_clusters
-
-    # ----------------------------------------------------------------
-    # Construction de la figure (UNE SEULE FOIS)
-    # ----------------------------------------------------------------
+    show_cards = "show" in show_cards
 
     scatter_fn = px.scatter if dim == 2 else px.scatter_3d
 
+    # --------------------
+    # Base scatter (DECKS)
+    # --------------------
     scatter_kwargs = dict(
         data_frame=df,
         x="x",
@@ -168,14 +213,48 @@ def update_graph(dim, selected_hero, show_clusters):
         scatter_kwargs["z"] = "z"
 
     if show_clusters:
-        scatter_kwargs["symbol"] = "cluster"
-        scatter_kwargs["symbol_map"] = build_cluster_symbol_map(df)
-        scatter_kwargs["hover_name"] = "cluster"
-        scatter_kwargs["title"] = "Espace des decks — clusters intra-héros"
+        scatter_kwargs.update(
+            symbol="cluster",
+            symbol_map=build_cluster_symbol_map(df),
+            hover_name="cluster",
+            title="Espace des decks — clusters intra-héros",
+        )
 
     fig = scatter_fn(**scatter_kwargs)
 
     fig.update_traces(marker=dict(size=6, opacity=0.85))
-    fig.update_layout(height=700, legend_title_text="Héros")
+
+    # --------------------
+    # Optional CARDS layer
+    # --------------------
+    if show_cards:
+        cards_df = load_cards(dim)
+
+        if selected_faction:
+            cards_df = cards_df[cards_df["faction"] == selected_faction]
+
+        if selected_hero:
+            cards_df = cards_df[cards_df["hero_name"] == selected_hero]
+
+        fig.add_scatter(
+            x=cards_df["x"],
+            y=cards_df["y"],
+            mode="markers",
+            marker=dict(
+                symbol="circle-open",
+                size=4,
+                color="rgba(120,120,120,0.5)",
+            ),
+            name="Cartes",
+            hovertext=cards_df["nom"],
+            hoverinfo="text",
+            showlegend=True,
+            **({"z": cards_df["z"]} if dim == 3 else {}),
+        )
+
+    fig.update_layout(
+        height=700,
+        legend_title_text="Héros",
+    )
 
     return fig
