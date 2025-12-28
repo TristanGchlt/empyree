@@ -1,11 +1,6 @@
-import sys
-from pathlib import Path
 import numpy as np
 from umap import UMAP
 import pytest
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
 
 from src.projection.umap_utils import fit_umap, transform_umap
 

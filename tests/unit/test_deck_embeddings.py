@@ -1,9 +1,4 @@
-import sys
-from pathlib import Path
 import numpy as np
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
 
 from src.embeddings.deck_embeddings import compute_deck_embedding,  compute_all_deck_embeddings
 
