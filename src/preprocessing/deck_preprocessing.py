@@ -49,9 +49,18 @@ def expand_quantities(cards_list: list[str]) -> list[str]:
     """
     deck = []
     for c in cards_list:
-        qty = int(c[0])
-        card_id = c[2:]
-        deck.extend([card_id] * qty)
+        c = c.strip()
+        if not c:
+            continue
+        parts = c.split(maxsplit=1)
+        if len(parts) != 2:
+            continue
+        try:
+            qty = int(parts[0])
+        except ValueError:
+            continue
+        card = parts[1].strip()
+        deck.extend([card] * qty)
     return deck
 
 def preprocess_deck(cards_string: str) -> list[str]:

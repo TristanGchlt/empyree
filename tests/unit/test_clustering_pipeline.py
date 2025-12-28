@@ -33,4 +33,4 @@ def test_run_deck_clustering_basic(small_card_metadata):
 
     # Cluster intra-faction valides
     assert result["cluster"].notna().all()
-    assert result["cluster"].apply(lambda x: isinstance(x, int)).all()
+    assert result["cluster"].apply(lambda x: isinstance(x, str)).all()

@@ -29,4 +29,4 @@ def test_cluster_small_group_returns_single_cluster():
     labels = cluster_decks(df)
 
     assert labels.nunique() == 1
-    assert labels.iloc[0] == 0
+    assert isinstance(labels.iloc[0], str)

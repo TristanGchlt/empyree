@@ -72,7 +72,9 @@ Le projet est organisé pour séparer clairement :
 │   ├── clustering/         # Embeddings, clustering, projections (UMAP)
 │   └── dashboard/          # Application Dash
 │
-├── tests/                  # Tests unitaires
+├── tests/                  
+│   ├── integration/        # Tests d'intégration
+│   └── unit/               # Tests unitaires
 │
 ├── Makefile                # Liste de commandes utiles
 │
